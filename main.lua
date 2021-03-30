@@ -1,4 +1,8 @@
 debug = true
+
+screenWidth = love.graphics.getWidth()
+screenHeight = love.graphics.getHeight()
+
 mousedown = false
 
 cutsize = {
@@ -14,6 +18,10 @@ tractor = {
     y = -100,
     dx = 0,
     dy = 0
+}
+
+hay = {
+    image = love.graphics.newImage('assets/hay.png')
 }
 
 function love.load(arg)
@@ -47,7 +55,18 @@ end
 function reset()
     c = love.graphics.newCanvas(love.graphics.getWidth(),
                                 love.graphics.getHeight())
+    love.graphics.setCanvas(c)
+
     love.graphics.setBackgroundColor(0,1,0)
+    love.graphics.setColor(1, 1, 1)
+
+    for y = 0, screenHeight, hay.image:getHeight() do
+        for x = 0, screenWidth, hay.image:getWidth() do
+            love.graphics.draw(hay.image, x, y)
+        end
+    end
+
+    love.graphics.setCanvas()
 end
 
 -- touch and mouse
