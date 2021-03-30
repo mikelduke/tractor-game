@@ -66,6 +66,19 @@ function love.mousereleased(x, y, button, istouch, presses)
     mousedown = false
 end
 
+function love.touchpressed(id, x, y, dx, dy, pressure)
+    love.mousepressed(x,y)
+end
+
+function love.touchmoved(id, x, y, dx, dy, pressure)
+    love.mousemoved(x, y, dx, dy)
+end
+
+function love.touchreleased(id, x, y, dx, dy, pressure)
+    love.mousereleased(x, y)
+end
+
+
 -- keyboard
 
 function love.keypressed(key, scancode, isrepeat)
