@@ -24,6 +24,10 @@ hay = {
     image = love.graphics.newImage('assets/hay.png')
 }
 
+dirt = {
+    image = love.graphics.newImage('assets/dirt1.png')
+}
+
 function love.load(arg)
     reset()
 end
@@ -37,7 +41,8 @@ end
 function love.draw(dt)
     love.graphics.setColor(1, 1, 1)
 
-    love.graphics.draw(c)
+    love.graphics.draw(dirtCanvas)
+    love.graphics.draw(hayCanvas)
 
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(tractor.image, tractor.x, tractor.y, 
@@ -53,9 +58,9 @@ function love.draw(dt)
 end
 
 function reset()
-    c = love.graphics.newCanvas(love.graphics.getWidth(),
+    hayCanvas = love.graphics.newCanvas(love.graphics.getWidth(),
                                 love.graphics.getHeight())
-    love.graphics.setCanvas(c)
+    love.graphics.setCanvas(hayCanvas)
 
     love.graphics.setBackgroundColor(0,1,0)
     love.graphics.setColor(1, 1, 1)
@@ -63,6 +68,19 @@ function reset()
     for y = 0, screenHeight, hay.image:getHeight() do
         for x = 0, screenWidth, hay.image:getWidth() do
             love.graphics.draw(hay.image, x, y)
+        end
+    end
+
+    dirtCanvas = love.graphics.newCanvas(love.graphics.getWidth(),
+                                love.graphics.getHeight())
+    love.graphics.setCanvas(dirtCanvas)
+
+    love.graphics.setBackgroundColor(0,1,0)
+    love.graphics.setColor(1, 1, 1)
+
+    for y = 0, screenHeight, dirt.image:getHeight() do
+        for x = 0, screenWidth, dirt.image:getWidth() do
+            love.graphics.draw(dirt.image, x, y)
         end
     end
 
@@ -120,13 +138,15 @@ function moveTractor(x, y, dx, dy)
         tractor.orientation = tractor.scaleX
     end
 
-    love.graphics.setCanvas(c)
+    love.graphics.setCanvas(hayCanvas)
     
     -- tractor path
-    love.graphics.setColor(0, 0, 0)
+    love.graphics.setColor(1,1,1)
     local cutx = x - 2
     local cuty = y + 16
-    love.graphics.rectangle("fill", cutx - cutsize.width / 2, cuty - cutsize.height / 2, cutsize.width, cutsize.height)
+    -- love.graphics.rectangle("fill", cutx - cutsize.width / 2, cuty - cutsize.height / 2, cutsize.width, cutsize.height)
+    dirt = love.graphics.newQuad(cutx - cutsize.width / 2, cuty - cutsize.height / 2, cutsize.width, cutsize.height, dirtCanvas:getDimensions())
+    love.graphics.draw(dirtCanvas, dirt, cutx - cutsize.width / 2, cuty - cutsize.height / 2)
 
     love.graphics.setCanvas()
 end
