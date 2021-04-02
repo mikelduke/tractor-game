@@ -5,27 +5,27 @@ screenHeight = love.graphics.getHeight()
 
 mousedown = false
 
+world = nil
+objects = {}
+
 tractor = {
-    image = love.graphics.newImage('assets/TRAKTOR.png'),
+    img = nil,
+    touchid = nil,
     scaleX = 1,
     scaleY = 1,
-    x = -100,
-    y = -100,
-    dx = 0,
-    dy = 0
+    width = 0,
+    height = 0,
 }
 
-hay = {
-    image = love.graphics.newImage('assets/hay.png')
-}
-
-dirt = {
-    image = love.graphics.newImage('assets/dirt1.png')
+images = {
+    tractor = love.graphics.newImage('assets/TRAKTOR.png'),
+    hay = love.graphics.newImage('assets/hay.png'),
+    dirt = love.graphics.newImage('assets/dirt1.png')
 }
 
 cutPath = {
-    width = tractor.image:getWidth() * tractor.scaleX * .8,
-    height = tractor.image:getHeight() * tractor.scaleY * .6,
+    width = images.tractor:getWidth() * tractor.scaleX * .8,
+    height = images.tractor:getHeight() * tractor.scaleY * .6,
 }
 
 function love.load(arg)
@@ -34,7 +34,7 @@ function love.load(arg)
 
     world = love.physics.newWorld(0, 0)
 
-    -- createPlayer()
+    createTractor()
 
     reset()
 end
@@ -43,23 +43,26 @@ function love.update(dt)
     if love.keyboard.isDown('escape') then
         love.event.push('quit')
     end
+
+    world:update(dt)
 end
 
 function love.draw(dt)
-    love.graphics.setColor(1, 1, 1)
+    updateTractorPath()
 
+    love.graphics.setColor(1, 1, 1)
     love.graphics.draw(dirtCanvas)
     love.graphics.draw(hayCanvas)
 
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(tractor.image, 
-            tractor.x, 
-            tractor.y, 
+    love.graphics.draw(tractor.img, 
+            tractor.body:getX(), 
+            tractor.body:getY(), 
             0,
             tractor.orientation, -- scalex or -scalex
-            tractor.scaleY,
-            tractor.image:getWidth() * tractor.scaleX / 2,
-            tractor.image:getHeight() * tractor.scaleY / 2)
+            1,
+            tractor.width / 2,
+            tractor.height / 2)
 
     if debug then
         love.graphics.setColor(1, 1, 1)
@@ -74,6 +77,8 @@ function setScale()
     sy = height / 1080
     tractor.scaleX = tractor.scaleX * sx
     tractor.scaleY = tractor.scaleY * sy
+    tractor.width = images.tractor:getWidth() * tractor.scaleX
+    tractor.height = images.tractor:getHeight() * tractor.scaleY
 end
 
 
@@ -85,9 +90,9 @@ function reset()
     love.graphics.setBackgroundColor(0,1,0)
     love.graphics.setColor(1, 1, 1)
 
-    for y = 0, screenHeight, hay.image:getHeight() do
-        for x = 0, screenWidth, hay.image:getWidth() do
-            love.graphics.draw(hay.image, x, y)
+    for y = 0, screenHeight, images.hay:getHeight() do
+        for x = 0, screenWidth, images.hay:getWidth() do
+            love.graphics.draw(images.hay, x, y)
         end
     end
 
@@ -98,9 +103,9 @@ function reset()
     love.graphics.setBackgroundColor(0,1,0)
     love.graphics.setColor(1, 1, 1)
 
-    for y = 0, screenHeight, dirt.image:getHeight() do
-        for x = 0, screenWidth, dirt.image:getWidth() do
-            love.graphics.draw(dirt.image, x, y)
+    for y = 0, screenHeight, images.dirt:getHeight() do
+        for x = 0, screenWidth, images.dirt:getWidth() do
+            love.graphics.draw(images.dirt, x, y)
         end
     end
 
@@ -111,6 +116,7 @@ end
 
 function love.mousepressed(x, y, button, istouch, presses)
     mousedown = true
+    love.touchpressed("m", x, y)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
@@ -121,21 +127,28 @@ end
 
 function love.mousereleased(x, y, button, istouch, presses)
     mousedown = false
+    love.touchreleased("m", x, y)
 end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
-    -- love.mousepressed(x,y)
+    if (tractor.touchid == nil) then
+        tractor.touchid = id
+        tractor.joint:setTarget(x, y)
+    end
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
-    moveTractor(x, y, dx, dy)
+    if (tractor.touchid == id) then
+        tractor.joint:setTarget(x, y)
+    end
+    orientTractor(x, y, dx, dy)
 end
 
 function love.touchreleased(id, x, y, dx, dy, pressure)
-    -- love.mousereleased(x, y)
-
+    if (tractor.touchid == id) then
+        tractor.touchid = nil
+    end
 end
-
 
 -- keyboard
 
@@ -152,26 +165,48 @@ function love.keypressed(key, scancode, isrepeat)
     end
 end
 
-function moveTractor(x, y, dx, dy)
-    tractor.x = x
-    tractor.y = y
-    tractor.dx = dx
-    tractor.dy = dy
-    tractor.orientation = tractor.scaleX * math.sign(tractor.dx) * -1
+function orientTractor(x, y, dx, dy)
+    tractor.orientation = math.sign(dx) * -1
     if tractor.orientation == 0 then 
-        tractor.orientation = tractor.scaleX
+        tractor.orientation = -1
     end
-
-    love.graphics.setCanvas(hayCanvas)
-    
-    -- tractor path
-    love.graphics.setColor(1,1,1)
-    local cutx = x - 2
-    local cuty = y + 16
-    local dirtQuad = love.graphics.newQuad(cutx - cutPath.width / 2, cuty - cutPath.height / 2, cutPath.width, cutPath.height, dirtCanvas:getDimensions())
-    love.graphics.draw(dirtCanvas, dirtQuad, cutx - cutPath.width / 2, cuty - cutPath.height / 2)
-
-    love.graphics.setCanvas()
 end
 
 function math.sign(n) return n>0 and 1 or n<0 and -1 or 0 end
+
+function createTractor()
+    tractor.img = scale(images.tractor, tractor.scaleX, tractor.scaleY)
+    
+    tractor.body = love.physics.newBody(world, love.mouse.getX(), love.mouse.getY(), "dynamic")
+    tractor.shape = love.physics.newRectangleShape(tractor.width, tractor.height)
+    tractor.fixture = love.physics.newFixture(tractor.body, tractor.shape)
+    tractor.joint = love.physics.newMouseJoint(tractor.body, love.mouse.getPosition())
+
+    table.insert(objects, tractor)
+end
+
+function scale(img, ratioX, ratioY)
+    local c = love.graphics.newCanvas(img:getWidth() * ratioX,
+                                      img:getHeight() * ratioY)
+    love.graphics.setCanvas(c)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(img, 0, 0, 0, ratioX, ratioY)
+    love.graphics.setCanvas()
+
+    return c
+end
+
+function calcAngle(o1, o2)
+    return -math.atan2(o1.body:getX() - o2.body:getX(),
+                       o1.body:getY() - o2.body:getY())
+end
+
+function updateTractorPath()
+    love.graphics.setCanvas(hayCanvas)
+    love.graphics.setColor(1,1,1)
+    local cutx = tractor.body:getX() - 2
+    local cuty = tractor.body:getY() + 16
+    local dirtQuad = love.graphics.newQuad(cutx - cutPath.width / 2, cuty - cutPath.height / 2, cutPath.width, cutPath.height, dirtCanvas:getDimensions())
+    love.graphics.draw(dirtCanvas, dirtQuad, cutx - cutPath.width / 2, cuty - cutPath.height / 2)
+    love.graphics.setCanvas()
+end
