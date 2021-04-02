@@ -11,7 +11,8 @@
         {
             "label": "run love windows",
             "type": "shell",
-            "command": "/j/DevTools/love-11.3-win64/love ."
+            "command": "/j/DevTools/love-11.3-win64/love .",
+            "problemMatcher": []
         },
         {
             "label": "copy to love sync folder",
@@ -21,10 +22,10 @@
             "isBackground": true
         },
         {
-            "label":"build dist",
+            "label": "build dist",
             "type": "shell",
             "command": "bin/dist.sh && rm -rf temp",
-            "problemMatcher":[],
+            "problemMatcher": []
         }
     ]
 }

@@ -95,7 +95,7 @@ end
 
 function love.mousemoved(x, y, dx, dy, istouch)
     if mousedown then
-        moveTractor(x, y, dx, dy)
+        love.touchmoved("m", x, y, dx, dy)
     end
 end
 
@@ -104,15 +104,16 @@ function love.mousereleased(x, y, button, istouch, presses)
 end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
-    love.mousepressed(x,y)
+    -- love.mousepressed(x,y)
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
-    love.mousemoved(x, y, dx, dy)
+    moveTractor(x, y, dx, dy)
 end
 
 function love.touchreleased(id, x, y, dx, dy, pressure)
-    love.mousereleased(x, y)
+    -- love.mousereleased(x, y)
+
 end
 
 
