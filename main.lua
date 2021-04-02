@@ -1,19 +1,14 @@
-debug = true
+debug = false
 
 screenWidth = love.graphics.getWidth()
 screenHeight = love.graphics.getHeight()
 
 mousedown = false
 
-cutsize = {
-    width = 60,
-    height = 40
-}
-
 tractor = {
     image = love.graphics.newImage('assets/TRAKTOR.png'),
-    scaleX = .4,
-    scaleY = .4,
+    scaleX = 1,
+    scaleY = 1,
     x = -100,
     y = -100,
     dx = 0,
@@ -28,7 +23,19 @@ dirt = {
     image = love.graphics.newImage('assets/dirt1.png')
 }
 
+cutPath = {
+    width = tractor.image:getWidth() * tractor.scaleX * .8,
+    height = tractor.image:getHeight() * tractor.scaleY * .6,
+}
+
 function love.load(arg)
+    love.mouse.setVisible(false)
+    setScale()
+
+    world = love.physics.newWorld(0, 0)
+
+    -- createPlayer()
+
     reset()
 end
 
@@ -45,10 +52,14 @@ function love.draw(dt)
     love.graphics.draw(hayCanvas)
 
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(tractor.image, tractor.x, tractor.y, 
+    love.graphics.draw(tractor.image, 
+            tractor.x, 
+            tractor.y, 
             0,
-            tractor.orientation, tractor.scaleY, 
-            tractor.image:getWidth() * tractor.scaleX, tractor.image:getHeight() * tractor.scaleY)
+            tractor.orientation, -- scalex or -scalex
+            tractor.scaleY,
+            tractor.image:getWidth() * tractor.scaleX / 2,
+            tractor.image:getHeight() * tractor.scaleY / 2)
 
     if debug then
         love.graphics.setColor(1, 1, 1)
@@ -56,6 +67,15 @@ function love.draw(dt)
         love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), 10, 20)
     end
 end
+
+function setScale()
+    local width, height = love.graphics.getDimensions()
+    sx = width / 1920
+    sy = height / 1080
+    tractor.scaleX = tractor.scaleX * sx
+    tractor.scaleY = tractor.scaleY * sy
+end
+
 
 function reset()
     hayCanvas = love.graphics.newCanvas(love.graphics.getWidth(),
@@ -120,7 +140,10 @@ end
 -- keyboard
 
 function love.keypressed(key, scancode, isrepeat)
-    if key == 'd' and not isrepeat then debug = not debug end
+    if key == 'd' and not isrepeat then 
+        debug = not debug 
+        love.mouse.setVisible(debug)
+    end
 
     if key == 'escape' then
         love.event.push('quit')
@@ -145,9 +168,8 @@ function moveTractor(x, y, dx, dy)
     love.graphics.setColor(1,1,1)
     local cutx = x - 2
     local cuty = y + 16
-    -- love.graphics.rectangle("fill", cutx - cutsize.width / 2, cuty - cutsize.height / 2, cutsize.width, cutsize.height)
-    dirt = love.graphics.newQuad(cutx - cutsize.width / 2, cuty - cutsize.height / 2, cutsize.width, cutsize.height, dirtCanvas:getDimensions())
-    love.graphics.draw(dirtCanvas, dirt, cutx - cutsize.width / 2, cuty - cutsize.height / 2)
+    local dirtQuad = love.graphics.newQuad(cutx - cutPath.width / 2, cuty - cutPath.height / 2, cutPath.width, cutPath.height, dirtCanvas:getDimensions())
+    love.graphics.draw(dirtCanvas, dirtQuad, cutx - cutPath.width / 2, cuty - cutPath.height / 2)
 
     love.graphics.setCanvas()
 end
