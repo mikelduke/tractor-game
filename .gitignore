@@ -4,3 +4,4 @@ dist/
 temp/
 *.keystore
 .DS_Store
+*notes.txt
