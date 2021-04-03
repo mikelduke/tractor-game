@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    # Build the applications
+    - uses: nhartland/love-build@v1-beta2
+      id: love-build
+      with:
+        source_dir: 'src'
+        app_name: 'tractor-game'
+        love_version: '11.3'
+    # Upload the built applications
+    - uses: actions/upload-artifact@v1
+      with:
+        name: tractor-game-macos-build
+        path: ${{ steps.love-build.outputs.macos-filename }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: tractor-game-win32-build
+        path: ${{ steps.love-build.outputs.win32-filename }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: tractor-game-win64-build
+        path: ${{ steps.love-build.outputs.win64-filename }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: tractor-game-love-build
+        path: ${{ steps.love-build.outputs.love-filename }}
+    - uses: mikelduke/love.js@master
+      id: love-js-build
+      with:
+        title: 'tractor-game'
+        source_file: ${{ steps.love-build.outputs.love-filename }}
+        result_dir: docs/game
+    - uses: actions/upload-artifact@v1
+      with:
+        name: love-js
+        path: ${{ steps.love-js-build.outputs.love-js-output }}
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@4.1.0
+      with:
+        branch: gh-pages
+        folder: docs
