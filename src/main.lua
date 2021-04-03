@@ -201,10 +201,10 @@ end
 function math.sign(n) return n>0 and 1 or n<0 and -1 or 0 end
 
 function createTractor()
-    tractor.body = love.physics.newBody(world, love.mouse.getX(), love.mouse.getY(), "dynamic")
+    tractor.body = love.physics.newBody(world, screenWidth / 2, screenHeight / 2, "dynamic")
     tractor.shape = love.physics.newRectangleShape(tractor.width, tractor.height)
     tractor.fixture = love.physics.newFixture(tractor.body, tractor.shape)
-    tractor.joint = love.physics.newMouseJoint(tractor.body, love.mouse.getPosition())
+    tractor.joint = love.physics.newMouseJoint(tractor.body, screenWidth / 2, screenHeight / 2)
 
     table.insert(objects, tractor)
 end

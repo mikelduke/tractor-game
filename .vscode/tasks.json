@@ -11,7 +11,7 @@
         {
             "label": "run love windows",
             "type": "shell",
-            "command": "/j/DevTools/love-11.3-win64/love .",
+            "command": "/j/DevTools/love-11.3-win64/love src/.",
             "problemMatcher": []
         },
         {
