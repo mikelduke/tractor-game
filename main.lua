@@ -3,6 +3,11 @@ debug = false
 screenWidth = love.graphics.getWidth()
 screenHeight = love.graphics.getHeight()
 
+animation = {
+    frameRate = .25,
+    frameDiff = 0,
+}
+
 mousedown = false
 
 world = nil
@@ -15,18 +20,21 @@ tractor = {
     scaleY = 1,
     width = 0,
     height = 0,
+
+    fullFrames = {},
+    frames = {},
+    frameIndex = 1,
 }
+tractor.fullFrames[1] = love.graphics.newImage('assets/TRAKTOR.png')
+tractor.fullFrames[2] = love.graphics.newImage('assets/TRAKTOR2.png')
+tractor.fullFrames[3] = love.graphics.newImage('assets/TRAKTOR3.png')
 
 images = {
-    tractor = love.graphics.newImage('assets/TRAKTOR.png'),
     hay = love.graphics.newImage('assets/hay.png'),
     dirt = love.graphics.newImage('assets/dirt1.png')
 }
 
-cutPath = {
-    width = images.tractor:getWidth() * tractor.scaleX * .8,
-    height = images.tractor:getHeight() * tractor.scaleY * .6,
-}
+cutPath = {}
 
 function love.load(arg)
     love.mouse.setVisible(false)
@@ -45,9 +53,20 @@ function love.update(dt)
     end
 
     world:update(dt)
+
+    animation.frameDiff = animation.frameDiff + dt
+    local nextFrame = false
+    if animation.frameDiff > animation.frameRate then 
+        nextFrame = true
+        animation.frameDiff = 0
+    end
+    if nextFrame then 
+        tractor.frameIndex = tractor.frameIndex + 1
+        if tractor.frameIndex > #tractor.frames then tractor.frameIndex = 1 end
+    end
 end
 
-function love.draw(dt)
+function love.draw()
     updateTractorPath()
 
     love.graphics.setColor(1, 1, 1)
@@ -55,7 +74,7 @@ function love.draw(dt)
     love.graphics.draw(hayCanvas)
 
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(tractor.img, 
+    love.graphics.draw(tractor.frames[tractor.frameIndex], 
             tractor.body:getX(), 
             tractor.body:getY(), 
             0,
@@ -77,8 +96,15 @@ function setScale()
     sy = height / 1080
     tractor.scaleX = tractor.scaleX * sx
     tractor.scaleY = tractor.scaleY * sy
-    tractor.width = images.tractor:getWidth() * tractor.scaleX
-    tractor.height = images.tractor:getHeight() * tractor.scaleY
+    tractor.width = tractor.fullFrames[1]:getWidth() * tractor.scaleX
+    tractor.height = tractor.fullFrames[1]:getHeight() * tractor.scaleY
+
+    tractor.frames[1] = scale(tractor.fullFrames[1], tractor.scaleX, tractor.scaleY)
+    tractor.frames[2] = scale(tractor.fullFrames[2], tractor.scaleX, tractor.scaleY)
+    tractor.frames[3]= scale(tractor.fullFrames[3], tractor.scaleX, tractor.scaleY)
+
+    cutPath.width = tractor.frames[1]:getWidth() * .8
+    cutPath.height = tractor.frames[1]:getHeight() * .6
 end
 
 
@@ -175,8 +201,6 @@ end
 function math.sign(n) return n>0 and 1 or n<0 and -1 or 0 end
 
 function createTractor()
-    tractor.img = scale(images.tractor, tractor.scaleX, tractor.scaleY)
-    
     tractor.body = love.physics.newBody(world, love.mouse.getX(), love.mouse.getY(), "dynamic")
     tractor.shape = love.physics.newRectangleShape(tractor.width, tractor.height)
     tractor.fixture = love.physics.newFixture(tractor.body, tractor.shape)
