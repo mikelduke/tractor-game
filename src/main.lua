@@ -37,7 +37,6 @@ images = {
 cutPath = {}
 
 function love.load(arg)
-    love.mouse.setVisible(false)
     setScale()
 
     world = love.physics.newWorld(0, 0)
@@ -181,7 +180,6 @@ end
 function love.keypressed(key, scancode, isrepeat)
     if key == 'd' and not isrepeat then 
         debug = not debug 
-        love.mouse.setVisible(debug)
     end
 
     if key == 'escape' then
